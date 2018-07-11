@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>REST API with Express Client Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-debug.js"></script>
+</head>
+
+<body>
+    <div id="main">
+        <div class="navbar">
+            <div class="navbar-inner">
+                <a class="brand" href="#">REST API with Express Client Demo</a>
+                <button data-bind="click: beginAdd" class="btn">Add Post</button>
+            </div>
+        </div>
+        <div class="container">
+            <!-- ko foreach: posts -->
+            <h2 data-bind="text: name"></h2>
+            <p data-bind="text: text"></p>
+            <a data-bind="attr: { href: url}">
+                <span data-bind="text: url"></span>
+            </a>
+            <hr>
+            <button data-bind="click: $parent.beginEdit" class="btn">Edit Post</button>
+            <button data-bind="click: $parent.remove" class="btn">Delete Post</button>
+            <button data-bind="click: $parent.addComment" class="btn">Add Comment</button>
+            <button data-bind="click: $parent.showComments" class="btn">Edit Comments</button>
+            <hr>
+            <!-- ko foreach: comments -->
+            <h5 class="mt-0">Comment #<span data-bind="text: id"></span></h5>
+            <p data-bind="text: text"></p>
+            <hr>
+            <!-- /ko -->
+            <!-- /ko -->
+        </div>
+    </div>
+    <div id="add" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="addDialogLabel">Add Post</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputPost">Post</label>
+                    <div class="controls">
+                        <input data-bind="value: name" type="text" id="inputPost" placeholder="Post name" style="width: 300px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputText">Text</label>
+                    <div class="controls">
+                        <textarea data-bind="value: text" type="text" id="inputText" placeholder="Text" style="width: 300px;"></textarea>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputUrl">Url</label>
+                    <div class="controls">
+                        <input data-bind="value: url" type="text" id="inputUrl" placeholder="Post url" style="width: 300px;">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click: addPost" class="btn btn-primary">Add Post</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
+    </div>
+    <div id="edit" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="editDialogLabel">Edit Post</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputId">Id</label>
+                    <div class="controls">
+                        <input data-bind="value: id" type="text" id="inputId" style="width: 300px;" disabled>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputPost">Post</label>
+                    <div class="controls">
+                        <input data-bind="value: name" type="text" id="inputPost" placeholder="Post name" style="width: 300px;">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputText">Text</label>
+                    <div class="controls">
+                        <textarea data-bind="value: text" type="text" id="inputText" placeholder="Text" style="width: 300px;"></textarea>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputUrl">Url</label>
+                    <div class="controls">
+                        <input data-bind="value: url" type="text" id="inputUrl" placeholder="Url" style="width: 300px;">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click:editPost" class="btn btn-primary">Update Post</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
+    </div>
+    <div id="login" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
+        <div class="modal-header">
+            <h3 id="loginLabel">Sign In</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputUsername">Username</label>
+                    <div class="controls">
+                        <input data-bind="value: username" type="text" id="inputUsername" placeholder="Username">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputPassword">Password</label>
+                    <div class="controls">
+                        <input data-bind="value: password" type="password" id="inputPassword" placeholder="Password">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click: login" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Sign In</button>
+        </div>
+    </div>
+    <div id="showComments" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="showCommentsDialogLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="showCommentsDialogLabel">Comments</h3>
+        </div>
+        <div class="modal-body">
+            <table class="table table-striped">
+                <tr>
+                    <td>
+                        <b>Comment</b>
+                    </td>
+                    <td>
+                        <b>Actions</b>
+                    </td>
+                </tr>
+                <!-- ko foreach: comments -->
+                <tr>
+                    <td>
+                        <p data-bind="text: text"></p>
+                    </td>
+                    <td>
+                        <button data-bind="click: $parent.beginEdit" class="btn">Edit</button>
+                        <button data-bind="click: $parent.remove" class="btn">Delete</button>
+                    </td>
+                </tr>
+                <!-- /ko -->
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click: beginAdd" class="btn btn-primary">Add Comment</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
+    </div>
+    <div id="addComment" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="addDialogLabel">Add Comment</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputText">Text</label>
+                    <div class="controls">
+                        <textarea data-bind="value: text" type="text" id="inputText" placeholder="Text" style="width: 300px;"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click: addComment" class="btn btn-primary">Add Comment</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
+    </div>
+    <div id="editComment" class="modal hide fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="editDialogLabel">Edit Comment</h3>
+        </div>
+        <div class="modal-body">
+            <form class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label" for="inputId">Id</label>
+                    <div class="controls">
+                        <input data-bind="value: id" type="text" id="inputId" style="width: 300px;" disabled>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputText">Text</label>
+                    <div class="controls">
+                        <textarea data-bind="value: text" type="text" id="inputText" placeholder="Text" style="width: 300px;"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button data-bind="click:editComment" class="btn btn-primary">Update Comment</button>
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+        </div>
+    </div>
+    <script type="text/javascript">
+        function PostsViewModel() {
+            var self = this;
+            self.postsURI = 'http://localhost:3000/posts';
+            self.username = "";
+            self.password = "";
+            self.posts = ko.observableArray();
+
+            self.ajax = function (url, method, data) {
+                var request = {
+                    url: url,
+                    type: method,
+                    contentType: "application/json",
+                    accepts: "application/json",
+                    cache: false,
+                    dataType: 'json',
+                    data: JSON.stringify(data),
+                    // beforeSend: function (xhr) {
+                    //     xhr.setRequestHeader("Authorization", 
+                    //         "Basic " + btoa(self.username + ":" + self.password));
+                    // },
+                    error: function (jqXHR) {
+                        if (jqXHR.status !== 204) {
+                            console.log("ajax error " + jqXHR.status);
+                        }
+                    }
+                };
+                return $.ajax(request);
+            }
+
+            self.showComments = function (post) {
+                commentsViewModel.setPost(post);
+                $('#showComments').modal('show');
+            }
+
+            self.addComment = function (post) {
+                commentsViewModel.setPost(post);
+                commentsViewModel.beginAdd(post);
+            }
+
+            self.updatePost = function (post, newPost) {
+                var i = self.posts.indexOf(post);
+                self.posts()[i].id(newPost.id);
+                self.posts()[i].name(newPost.name);
+                self.posts()[i].text(newPost.text);
+                self.posts()[i].url(newPost.url);
+            }
+
+            self.beginAdd = function () {
+                $('#add').modal('show');
+            }
+            self.add = function (post) {
+                self.ajax(self.postsURI, 'POST', post).done(function (data) {
+                    self.posts.push({
+                        id: ko.observable(data.id),
+                        name: ko.observable(data.name),
+                        text: ko.observable(data.text),
+                        url: ko.observable(data.url),
+                        comments: ko.observableArray([]),
+                    });
+                });
+            }
+            self.beginEdit = function (post) {
+                editPostViewModel.setPost(post);
+                $('#edit').modal('show');
+            }
+            self.edit = function (post, data) {
+                self.ajax(self.postsURI + '/' + post.id(), 'PUT', data).done(function (updatedPost) {
+                    self.updatePost(post, updatedPost);
+                });
+            }
+            self.remove = function (post) {
+                self.ajax(self.postsURI + '/' + post.id(), 'DELETE').done(function () {
+                    self.posts.remove(post);
+                }).error(data => {
+                    if (data.status === 204) self.posts.remove(post);
+                });
+            }
+            self.beginLogin = function () {
+                // $('#login').modal('show');
+                self.login();
+            }
+            self.login = function (username, password) {
+                self.username = username;
+                self.password = password;
+                self.ajax(self.postsURI, 'GET').done(function (posts) {
+                    for (var i = 0; i < posts.length; i++) {
+                        self.posts.push({
+                            id: ko.observable(posts[i].id),
+                            name: ko.observable(posts[i].name),
+                            text: ko.observable(posts[i].text),
+                            url: ko.observable(posts[i].url),
+                            comments: posts[i].comments ? ko.observableArray(posts[i].comments.map(c => {
+                                return {
+                                    id: ko.observable(c.id),
+                                    text: ko.observable(c.text),
+                                }
+                            })) : ko.observableArray([]),
+                        });
+                    }
+                }).fail(function (jqXHR) {
+                    if (jqXHR.status == 403)
+                        setTimeout(self.beginLogin, 500);
+                });
+            }
+
+            self.beginLogin();
+        }
+        function AddPostViewModel() {
+            var self = this;
+            self.name = ko.observable();
+            self.text = ko.observable();
+            self.url = ko.observable();
+
+            self.addPost = function () {
+                $('#add').modal('hide');
+                postsViewModel.add({
+                    name: self.name(),
+                    text: self.text(),
+                    url: self.url()
+                });
+                self.name("");
+                self.text("");
+                self.url("");
+            }
+        }
+        function EditPostViewModel() {
+            var self = this;
+            self.id = ko.observable();
+            self.name = ko.observable();
+            self.text = ko.observable();
+            self.url = ko.observable();
+
+            self.setPost = function (post) {
+                self.post = post;
+                self.id(post.id());
+                self.name(post.name());
+                self.text(post.text());
+                self.url(post.url());
+                $('edit').modal('show');
+            }
+
+            self.editPost = function () {
+                $('#edit').modal('hide');
+                postsViewModel.edit(self.post, {
+                    id: self.id(),
+                    name: self.name(),
+                    text: self.text(),
+                    url: self.url()
+                });
+            }
+        }
+        function LoginViewModel() {
+            var self = this;
+            self.username = ko.observable();
+            self.password = ko.observable();
+
+            self.login = function () {
+                $('#login').modal('hide');
+                postsViewModel.login(self.username(), self.password());
+            }
+        }
+
+        function CommentsViewModel() {
+            var self = this;
+            self.postsURI = 'http://localhost:3000/posts';
+            self.comments = ko.observableArray();
+
+            self.ajax = function (url, method, data) {
+                var request = {
+                    url: url,
+                    type: method,
+                    contentType: "application/json",
+                    accepts: "application/json",
+                    cache: false,
+                    dataType: 'json',
+                    data: JSON.stringify(data),
+                    // beforeSend: function (xhr) {
+                    //     xhr.setRequestHeader("Authorization", 
+                    //         "Basic " + btoa(self.username + ":" + self.password));
+                    // },
+                    error: function (jqXHR) {
+                        if (jqXHR.status !== 204) {
+                            console.log("ajax error " + jqXHR.status);
+                        }
+                    }
+                };
+                return $.ajax(request);
+            }
+            self.updateComment = function (comment, newComment) {
+                var i = self.comments.indexOf(comment);
+                self.comments()[i].id(newComment.id);
+                self.comments()[i].text(newComment.text);
+            }
+
+            self.beginAdd = function () {
+                $('#showComments').modal('hide');
+                $('#addComment').modal('show');
+            }
+            self.add = function (comment) {
+                self.ajax(self.postsURI + '/' + self.post.id() + '/comments', 'POST', comment).done(function (data) {
+                    self.post.comments.push({
+                        id: ko.observable(data.id),
+                        text: ko.observable(data.text),
+                    });
+                    self.comments(self.post.comments());
+                    // $('#showComments').modal('show');
+                });
+            }
+            self.beginEdit = function (comment) {
+                editCommentViewModel.setComment(comment);
+                $('#showComments').modal('hide');
+                $('#editComment').modal('show');
+            }
+            self.edit = function (comment, data) {
+                self.ajax(self.postsURI + '/' + self.post.id() + '/comments/' + comment.id(), 'PUT', data).done(function (updatedComment) {
+                    self.updateComment(comment, updatedComment);
+                    self.comments(self.post.comments());
+                    // $('#showComments').modal('show');
+                });
+            }
+            self.remove = function (comment) {
+                self.ajax(self.postsURI + '/' + self.post.id() + '/comments/' + comment.id(), 'DELETE').done(function () {
+                    self.post.comments.remove(comment);
+                    self.comments(self.post.comments());
+                }).error(data => {
+                    if (data.status === 204) {
+                        self.post.comments.remove(comment);
+                        self.comments(self.post.comments());
+                    }
+                });
+            }
+            self.setPost = function (post) {
+                self.post = post;
+                self.comments(post.comments());
+                /*
+                self.ajax(self.postsURI + '/' + self.post.id() + '/comments', 'GET').done(function (comments) {
+                    self.comments([]);
+                    for (var i = 0; i < comments.length; i++) {
+                        self.comments.push({
+                            id: ko.observable(comments[i].id),
+                            text: ko.observable(comments[i].text),
+                        });
+                    }
+                }).fail(function (jqXHR) {
+                    if (jqXHR.status == 403)
+                        setTimeout(self.beginLogin, 500);
+                });
+                */
+            }
+
+            self.setComment = function (comment) {
+                self.comment = comment;
+                $('#editComment').modal('show');
+            }
+
+            self.editComment = function () {
+                $('#editComment').modal('hide');
+                self.edit(self.comment, {
+                    id: self.id(),
+                    text: self.text(),
+                });
+            }
+        }
+
+        function AddCommentViewModel() {
+            var self = this;
+            self.text = ko.observable();
+
+            self.setPost = function (post) {
+                self.post = post;
+            }
+
+            self.addComment = function () {
+                $('#addComment').modal('hide');
+                commentsViewModel.add({
+                    text: self.text(),
+                });
+                self.text("");
+            }
+        }
+        function EditCommentViewModel() {
+            var self = this;
+            self.id = ko.observable();
+            self.text = ko.observable();
+
+            self.setPost = function (post) {
+                self.post = post;
+            }
+
+            self.setComment = function (comment) {
+                self.comment = comment;
+                self.id(comment.id());
+                self.text(comment.text());
+                $('#editComment').modal('show');
+            }
+
+            self.editComment = function () {
+                $('#editComment').modal('hide');
+                commentsViewModel.edit(self.comment, {
+                    id: self.id(),
+                    text: self.text(),
+                });
+            }
+        }
+
+        var postsViewModel = new PostsViewModel();
+        var addPostViewModel = new AddPostViewModel();
+        var editPostViewModel = new EditPostViewModel();
+        var loginViewModel = new LoginViewModel();
+
+        var commentsViewModel = new CommentsViewModel();
+        var addCommentViewModel = new AddCommentViewModel();
+        var editCommentViewModel = new EditCommentViewModel();
+
+        ko.applyBindings(postsViewModel, $('#main')[0]);
+        ko.applyBindings(addPostViewModel, $('#add')[0]);
+        ko.applyBindings(editPostViewModel, $('#edit')[0]);
+        ko.applyBindings(loginViewModel, $('#login')[0]);
+
+        ko.applyBindings(commentsViewModel, $('#showComments')[0]);
+        ko.applyBindings(addCommentViewModel, $('#addComment')[0]);
+        ko.applyBindings(editCommentViewModel, $('#editComment')[0]);
+
+    </script>
+</body>
+
+</html>
